@@ -1,3 +1,6 @@
+# project ignore list
+dataset_root/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
