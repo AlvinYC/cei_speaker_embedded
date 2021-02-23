@@ -1,6 +1,6 @@
 from multiprocess.pool import ThreadPool
 from encoder.params_data import *
-from encoder.config import librispeech_datasets, anglophone_nationalites
+from encoder.config import librispeech_datasets, anglophone_nationalites, vctk_nationalites
 from datetime import datetime
 from encoder import audio
 from pathlib import Path
@@ -111,12 +111,15 @@ def _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir,
         sources_file.close()
     
     # Process the utterances for each speaker
+    # thread method
     with ThreadPool(8) as pool:
         list(tqdm(pool.imap(preprocess_speaker, speaker_dirs), dataset_name, len(speaker_dirs),
-                  unit="speakers"))
+                unit="speakers"))
     logger.finalize()
     print("Done preprocessing %s.\n" % dataset_name)
-
+    
+    # debug for runing preprocess_speaker by non-thread method
+    # preprocess_speaker(speaker_dirs[0])
 
 def preprocess_librispeech(datasets_root: Path, out_dir: Path, skip_existing=False):
     for dataset_name in librispeech_datasets["train"]["other"]:
@@ -172,4 +175,37 @@ def preprocess_voxceleb2(datasets_root: Path, out_dir: Path, skip_existing=False
     # Preprocess all speakers
     speaker_dirs = list(dataset_root.joinpath("dev", "aac").glob("*"))
     _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, "m4a",
+                             skip_existing, logger)
+
+def preprocess_vctk(datasets_root: Path, out_dir: Path, skip_existing=False):
+    # Initialize the preprocessing
+    dataset_name = "vctk"
+    dataset_root, logger = _init_preprocess_dataset(
+        dataset_name, datasets_root, out_dir)
+    if not dataset_root:
+        return
+    
+    # Get the contents of the meta file
+    with dataset_root.joinpath("speaker-info.txt").open("r") as metafile:
+        #metadata = [line.split("\t") for line in metafile][1:]
+        content = metafile.read().splitlines()[1:]
+    metadata = list(map(lambda x: x.split(), content))
+
+    # Select the ID and the nationality, filter out non-anglophone speakers
+    nationalities = {line[0]: line[3] for line in metadata}
+    keep_speaker_ids = [speaker_id for speaker_id, nationality in nationalities.items() if
+                        nationality.lower() in vctk_nationalites]
+    print("VCTK: using samples from %d (presumed anglophone) speakers out of %d." %
+          (len(keep_speaker_ids), len(nationalities)))
+    
+    # Get the speaker directories for anglophone speakers only
+    speaker_dirs = Path(dataset_root).glob('**/*wav')   # get all wav fiile such as ./dataset_root/vctk/p225/p225_001.wav
+    #  y.parent = ./dataset_root/vctk/p225
+    # x.stem = p225, valify x.stem is existed in keep_speaker_ids
+    speaker_dirs = list(filter(lambda x: x.stem in keep_speaker_ids, set(list(map(lambda y: y.parent, speaker_dirs)))))
+    print("vctk corpus: found %d anglophone speakers on the disk, %d missing (this is normal)." %
+          (len(speaker_dirs), len(keep_speaker_ids) - len(speaker_dirs)))
+
+    # Preprocess all speakers
+    _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, "wav",
                              skip_existing, logger)

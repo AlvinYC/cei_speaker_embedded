@@ -43,3 +43,4 @@ other_datasets = [
 ]
 
 anglophone_nationalites = ["australia", "canada", "ireland", "uk", "usa"]
+vctk_nationalites = ['scottish', 'welsh', 'indian', 'irish', 'canadian', 'southafrican', 'australian', 'british', 'english', 'american', 'northernirish', 'newzealand']
