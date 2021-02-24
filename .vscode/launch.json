@@ -4,31 +4,37 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        /*
+
+            // wav --> npy
+        
         {
-            "name": "Python: 目前檔案",
+            "name": "Python: encoder_preproces.py",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-        }
-        */
-        {
-            "name": "Python: 目前檔案",
-            "type": "python",
-            "request": "launch",
-            "program": "encoder_preprocess.py",
+            "program": "${workspaceFolder}/encoder_preprocess.py",
             "console": "integratedTerminal",
             "args": [
-                "-datasets_root", "./dataset_root",
+                "-datasets_root",
+                "./dataset_root",
                 //"-d","librispeech_other"
                 //"-d","voxceleb1,voxceleb2"
-                "-d", "vctk"
+                "-d",
+                "vctk"
             ]
-        }
-
-
-
-
+        },
+        
+        // vctk_p233/*npy --> vctk_p233.pt
+        {
+            "name": "Python: encoder_train.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/encoder_train.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "vctk_run_subset","./dataset_root/SV2TTS/encoder",
+                //"--no_visdom",
+            ]
+        } ,
     ]
 }
