@@ -23,7 +23,7 @@
             ]
         },
         
-        // vctk_p233/*npy --> vctk_p233.pt
+        // train all speaker(folder) in ./dataset_root/SV2TTS/encoder
         {
             "name": "Python: encoder_train.py",
             "type": "python",
