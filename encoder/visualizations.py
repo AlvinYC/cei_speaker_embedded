@@ -6,7 +6,15 @@ import numpy as np
 # import webbrowser
 import visdom
 import umap
+from bokeh.palettes import Category20c
+import re
 
+# generate 20 color to replace 13 color
+categorysplit = lambda x:  re.search(r'\#(\w{2})(\w{2})(\w{2})', x).groups()
+colormap_str = list(map(lambda x:  categorysplit(x), Category20c[20]))
+colormap_int = [[int(x1, 16), int(x2, 16), int(x3, 16)]  for x1, x2, x3 in colormap_str]
+colormap = np.array(colormap_int, dtype=np.float) /255
+'''
 colormap = np.array([
     [76, 255, 0],
     [0, 127, 70],
@@ -22,7 +30,7 @@ colormap = np.array([
     [0, 0, 0],
     [183, 183, 183],
 ], dtype=np.float) / 255 
-
+'''
 
 class Visualizations:
     def __init__(self, env_name=None, update_every=10, server="http://localhost", disabled=False):
@@ -152,8 +160,9 @@ class Visualizations:
         self.eers.clear()
         self.step_times.clear()
         
+    # max_speaker 10-->200
     def draw_projections(self, embeds, utterances_per_speaker, step, out_fpath=None,
-                         max_speakers=10):
+                         max_speakers=200):
         max_speakers = min(max_speakers, len(colormap))
         embeds = embeds[:max_speakers * utterances_per_speaker]
         
